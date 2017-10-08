@@ -8,7 +8,7 @@ interactions, simple slopes, simple effects, etc.
 Detailed information at  https://mcfanda.github.io/galmj_glm/
 
 ## Model
-The model can estimate OLS linear models for any combination of categorical and continuous variables, thus providing an easy way for multiple regression, ANOVA, ANCOVA and moderation analysis. 
+The module can estimate OLS linear models for any combination of categorical and continuous variables, thus providing an easy way for multiple regression, ANOVA, ANCOVA and moderation analysis. 
 ## Estimates
 The modules provides ANOVA tables and parameter estimates for any estimated model. Effect size (eta, omega, and beta) are optionally computed
 
