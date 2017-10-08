@@ -576,7 +576,6 @@ galmjglmClass <- R6::R6Class(
         }
         ss<-summary(model)
         ss<-as.data.frame(ss$coefficients)
-        print(varname)
         a<-as.logical(apply(sapply(varname, function(a) a==rownames(ss)),1,sum))
         ss<-ss[a,] 
         if (is.numeric(level)) level<-round(level,digits=2)
