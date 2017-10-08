@@ -1,0 +1,24 @@
+---
+title: General Linear Model
+name: galmjglm
+version: 0.1.1
+jms: '1.0'
+authors:
+  - Marcello Gallucci
+maintainer: Marcello Gallucci <mcfanda@gmail.com>
+date: '2017-10-10'
+type: R
+description: >-
+  Estimates a general linear model with categorial and/or continuous variables,
+  with options to facilitate estimation of interactions, simple slopes, simple
+  effects, etc.
+analyses:
+  - title: GLM
+    name: galmjglm
+    ns: galmjglm
+    menuGroup: Linear Models
+    menuSubgroup: GALMj
+    menuTitle: GLM
+    description: General Linear Model
+
+...

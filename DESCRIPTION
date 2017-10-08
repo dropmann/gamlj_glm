@@ -1,0 +1,15 @@
+Package: galmjglm
+Type: Package
+Title: GALMj General Linear Model
+Version: 0.1.1
+Author: Marcello Gallucci
+Maintainer: Marcello Gallucci <mcfanda@gmail.com>
+Description: The General Linear Model of the GALMj suite. The module estimates a 
+             general linear model with categorical and/or 
+             continuous variables, with options to facilitate estimation and graphical rendering
+             of interactions, simple slopes, simple effects, contrasts and post-hoc analysis.
+License: GPL
+Encoding: UTF-8
+LazyData: true
+Imports: jmvcore (>= 0.7.1), R6 , car, lsmeans, ggplot2
+Depends: jmvcore
