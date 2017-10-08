@@ -1,4 +1,4 @@
-# Genaral Analyses for Linear Models in Jamovi: The GLM module
+# GAMLj: The GLM module
 
 General Linear Model module of the GAMLj suite for Jamovi
 
