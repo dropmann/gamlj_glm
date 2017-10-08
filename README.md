@@ -1,6 +1,6 @@
 # GAMLj GLM
 
-General Linear Model module 
+General Linear Model module of the GAMLj suite for Jamovi
 
 Estimates a general linear model with categorial and/or continuous variables, with options to facilitate estimation of 
 interactions, simple slopes, simple effects, etc.
