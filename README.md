@@ -5,7 +5,7 @@ General Linear Model module of the GAMLj suite for Jamovi
 The module estimates a general linear model with categorial and/or continuous variables, with options to facilitate estimation of 
 interactions, simple slopes, simple effects, etc.
 
-Detailed information at  https://mcfanda.github.io/galmj_glm/
+Detailed information at  https://mcfanda.github.io/gamlj_glm/
 
 ## Model
 The module can estimate OLS linear models for any combination of categorical and continuous variables, thus providing an easy way for multiple regression, ANOVA, ANCOVA and moderation analysis. 

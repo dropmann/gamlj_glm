@@ -3,9 +3,9 @@ source("R/glm.functions.R")
 source("R/linear.functions.R")
 
 #' @import ggplot2
-galmjglmClass <- R6::R6Class(
-  "galmjglm",
-  inherit = galmjglmBase,
+gamljGLMClass <- R6::R6Class(
+  "gamljGLM",
+  inherit = gamljGLMBase,
   private=list(
     .model=NA,
     .postHocRows=NA,
@@ -862,3 +862,4 @@ galmjglmClass <- R6::R6Class(
       super$.sourcifyOption(option)
     })
 )
+

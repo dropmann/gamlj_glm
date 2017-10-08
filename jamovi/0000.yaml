@@ -1,6 +1,6 @@
 ---
 title: General Linear Model
-name: galmjglm
+name: gamljGLM
 version: 0.1.1
 jms: '1.0'
 authors:
@@ -14,10 +14,10 @@ description: >-
   effects, etc.
 analyses:
   - title: GLM
-    name: galmjglm
-    ns: galmjglm
+    name: gamljGLM
+    ns: gamljGLM
     menuGroup: Linear Models
-    menuSubgroup: GALMj
+    menuSubgroup: GAMLj
     menuTitle: GLM
     description: General Linear Model
 

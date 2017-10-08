@@ -1,6 +1,6 @@
-# GALMj suite: the GLM module
+# GAMLj suite: the GLM module
 
-**General Linear Model** module of the GALMj suite for jamovi
+**General Linear Model** module of the GAMLj suite for jamovi
 
 <img src="i1.png" class="img-responsive" alt="">
 

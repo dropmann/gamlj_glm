@@ -1,10 +1,10 @@
-Package: galmjglm
+Package: gamljGLM
 Type: Package
-Title: GALMj General Linear Model
+Title: GAMLj General Linear Model
 Version: 0.1.1
 Author: Marcello Gallucci
 Maintainer: Marcello Gallucci <mcfanda@gmail.com>
-Description: The General Linear Model of the GALMj suite. The module estimates a 
+Description: The General Linear Model of the GAMLj suite. The module estimates a 
              general linear model with categorical and/or 
              continuous variables, with options to facilitate estimation and graphical rendering
              of interactions, simple slopes, simple effects, contrasts and post-hoc analysis.
