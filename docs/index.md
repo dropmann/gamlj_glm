@@ -7,12 +7,12 @@
 The module estimate a general linear model with categorial and/or continuous variables, with options to facilitate estimation ofinteractions, simple slopes, simple effects, etc.
 
 ## Module
-The model can estimates OLS linear models for any combination of categorical and continuous variables, thus providing an easy way for multiple regression, ANOVA, ANCOVA and moderation analysis. 
+The module can estimates OLS linear models for any combination of categorical and continuous variables, thus providing an easy way for multiple regression, ANOVA, ANCOVA and moderation analysis. 
 
 <img src="i2.png" class="img-responsive" alt="">
 
 ## Estimates
-The modules provides ANOVA tables and parameter estimates for any estimated model. Effect size (eta, omega, and beta) are optionally computed
+The module provides ANOVA tables and parameter estimates for any estimated model. Effect size (eta, omega, and beta) are optionally computed
 Variables definition follows jamovi standards, with categorical independent variables defined in "fixed factors" and continuous independent variables in "covariates".
 
 Effect size index are optionally computed by selecting the following options:
