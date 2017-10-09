@@ -17,10 +17,10 @@ Variables definition follows jamovi standards, with categorical independent vari
 
 Effect size index are optionally computed by selecting the following options:
 
-  - $ \beta $ : standardized regression coefficients. Continuous variables are standardized and categorical ones are contrast coded (-1 0 1) before estimating the parameters.
-  - $\eta^2$: "semi-partial" eta-squared computed as the sum-of-squares of the effect divided by the total sum-of-square.
-  - partial $\eta^2$: partial eta-squared computed as the sum-of-squares of the effect divided by the  sum-of-squares of the effect plus the sum-of-squares of error.
-  - $\omega^2$: omega-squared 
+  - __beta__ : standardized regression coefficients. Continuous variables are standardized and categorical ones are contrast coded (-1 0 1) before estimating the parameters.
+  - __eta^2__: "semi-partial" eta-squared computed as the sum-of-squares of the effect divided by the total sum-of-square.
+  - partial __eta^2__: partial eta-squared computed as the sum-of-squares of the effect divided by the  sum-of-squares of the effect plus the sum-of-squares of error.
+  - __omega^2__: omega-squared 
 
 ## Model 
 <img src="i3.png" class="img-responsive" alt="">
