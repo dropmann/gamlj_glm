@@ -9,6 +9,10 @@ You will first need to download [Jamovi](https://www.jamovi.org/download.html). 
 
 Detailed information at  https://mcfanda.github.io/gamlj_glm/
 
+<img src="docs/i1.png" class="img-responsive" alt="">
+
+
+
 ## Model
 The module can estimate OLS linear models for any combination of categorical and continuous variables, thus providing an easy way for multiple regression, ANOVA, ANCOVA and moderation analysis. 
 ## Estimates
