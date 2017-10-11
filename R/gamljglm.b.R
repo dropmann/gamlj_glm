@@ -52,7 +52,8 @@ gamljGLMClass <- R6::R6Class(
       dep <- self$options$dep
       factors <- self$options$factors
       modelTerms <- private$.modelTerms()
-      if (length(modelTerms) == 0)
+      
+      if (length(modelTerms) == 0 | is.null(dep))
         return()
       
       data <- private$.cleanData()
@@ -104,8 +105,43 @@ gamljGLMClass <- R6::R6Class(
         }
         
       }
+      ######### simple effects tables ##############
       
+      variable<-self$options$simpleVariable
+      moderator<-self$options$simpleModerator
+      threeway<-self$options$simple3way
       
+      if (!is.null(variable) & !is.null(moderator)) {
+        xlevels<-length(levels(data[[variable]]))
+        xlevels<-ifelse(xlevels>1,xlevels-1,3)
+        modlevels<-length(levels(data[[moderator]]))
+        modlevels<-ifelse(modlevels>1,modlevels,3)
+        nrows<-modlevels*xlevels  
+        simpleEffectsTables<-self$results$simpleEffects
+        simpleEffectsAnovas<-self$results$simpleEffectsAnovas
+        if (!is.null(threeway)) {
+          mod2levels<-length(levels(data[[threeway]]))
+          mod2levels<-ifelse(mod2levels>1,mod2levels,3)
+        } else
+          mod2levels<-1
+        for (j in 1:mod2levels) {
+          title<-paste("Simple effects of",variable)
+          key<-paste(variable,j,sep="")
+          
+          ## init simple ANOVA tables
+          ftable<-simpleEffectsAnovas$addItem(key=key)
+          ftable$setTitle(title)
+          for (i in 1:modlevels) 
+            ftable$addRow(rowKey=i,list(variable=" "))        
+          
+          ## init simple parameters tables
+          ptable<-simpleEffectsTables$addItem(key=key)
+          ptable$setTitle(title)
+          for (i in 1:nrows) 
+            ptable$addRow(rowKey=i,list(variable=" "))        
+          
+        }  
+      }  # end of simple effects tables
       # post hoc
       private$.initPostHoc(data)
       
@@ -184,31 +220,37 @@ gamljGLMClass <- R6::R6Class(
             if (self$options$ss == '1') {
               ss<-stats::anova(model)
               l<-(dim(ss)[1])-1
-              ss<-ss[1:l,c(2,1,4,5)]
+              ss[1:l,c(2,1,4,5)]
             }
             if (self$options$ss == '2') {
               ss<-car::Anova(model,type=2)
               l<-(dim(ss)[1])-1
-              ss<-ss[1:l,]
+              ss[1:l,]
             }
             if (self$options$ss == '3') {
               ss<-car::Anova(model,type=3)
               l<-(dim(ss)[1])-1
-              ss<-ss[2:l,]
+              ss[2:l,]
             }
           })
+          if (isError(results)) {
+            message <- extractErrorMessage(results)
+            reject(message)
+          }
+        ss<-as.data.frame(results)
         colnames(ss)<-c("ss","df","F","p")
         anovaTable <- self$results$main
         rowCount <- dim(ss)[1]
         rowNames <- dimnames(ss)[[1]]
         errdf<-model$df.residual
-        errMS<-sigma(model)^2
+        errMS<-summary(model)$sigma^2
         errSS<-errMS*errdf
         totalSS<-sum(ss$ss)+errSS
         ss$ms<-ss$ss/ss$df
         ss$etaSq<-ss$ss/(totalSS)
         ss$etaSqP <- ss$ss / (ss$ss + errSS)
         ss$omegaSq <- (ss$ss - (ss$df * errMS)) / (totalSS + errMS)
+
         for (i in seq_len(rowCount)) {
           rowName <- rowNames[i]
 #          tableRow <- list(ss=ss, df=df, ms=ms, F=F, p=p, etaSq=e, etaSqP=ep, omegaSq=w)
@@ -233,36 +275,19 @@ gamljGLMClass <- R6::R6Class(
           zdata[[dep]]<-scale(zdata[[dep]])
           for (var in covs)
             zdata[[var]]<-scale(zdata[[var]])
-          beta<-coef(stats:lm(formula,data=zdata))
+          beta<-coef(stats::lm(formula,data=zdata))
           beta[1]<-0
         } else beta<-1:nrow(eresults)
         
         eresults<-cbind(eresults,beta) 
-        
-        
-        rows<-rownames(eresults)
-        for (contrast in self$options$contrasts) {
-          
-          if (contrast$type=="default")
-            contrast$type="deviation"
-          
-          var <- data[,contrast$var]
-          dummies<-.getModelDummies(contrast$var,model)
-          levels <- base::levels(var)
-          labels <- .contrastLabels(levels, contrast$type)
-          labels<-paste("(",labels,")",sep="")
-          for(i in seq_along(dummies))
-            rows<-gsub(dummies[i],labels[i],rows,fixed=T)
-        }
-        
-
-        
+        labels<-.getModelContrastsLabels(self$options$contrasts,model)
+        print(labels)
         for (i in 1:nrow(eresults)) {
           tableRow=eresults[i,]
           names(tableRow)<-c("estimate","std","t","p","beta")
           estimatesTable$setRow(rowKey=rownames(eresults)[i],tableRow)
       #    estimatesTable$setRow(rowKey=rownames(eresults)[i],list(name=rownames(eresults)[i]))
-          estimatesTable$setRow(rowKey=rownames(eresults)[i],list(label=rows[i]))
+          estimatesTable$setRow(rowKey=rownames(eresults)[i],list(label=.nicifyTerms(labels[i])))
           
           }
         
@@ -274,6 +299,16 @@ gamljGLMClass <- R6::R6Class(
         
       }) # suppressWarnings
     },
+    .estimate=function(form,data) {
+       stats::lm(form,data)
+     },
+    .anova=function(model) {
+      car::Anova(model,type=3)
+     },
+    .summary=function(model) {
+        ss<-summary(model)
+        as.data.frame(ss$coefficients)
+     },
     .initPostHoc=function(data) {
       
       bs <- self$options$factors
@@ -465,148 +500,142 @@ gamljGLMClass <- R6::R6Class(
       
     },
     .populateSimple=function(model) {
+        variable<-self$options$simpleVariable
+        moderator<-self$options$simpleModerator
+        threeway<-self$options$simple3way
+        data<-local.getModelData(model)
+        simpleEffectsTables<-self$results$simpleEffects
+        simpleEffectsAnovas<-self$results$simpleEffectsAnovas
+  
+        .fillTheFTable<-function(results,aTable) {
+          ftests<-results[[2]]
+          print(ftests)
+          ### ftests      
+          for (i in seq_len(dim(ftests)[1])) {
+              r<-ftests[i,]
+              row<-list(variable=r$variable,
+              term=r$level,
+              df=r$Df,
+              ss=r$`Sum Sq`,
+              F=r$`F value`,
+              p=r$`Pr(>F)`)
+              aTable$setRow(rowNo=i,row)
+          }
+         } #### end of .fillTheFTable
+  
+  .fillThePTable<-function(results,aTable) {
+    params<-results[[1]]
+    what<-params$level
+    for (i in seq_len(dim(params)[1])) {
+      r<-params[i,]
+      row<-list(variable=r$variable,
+                term=r$level,
+                estimate=r$Estimate,
+                std=r$`Std. Error`,
+                t=r$`t value`,
+                p=r$`Pr(>|t|)`)
+      aTable$setRow(rowNo=i,row)
+      if (what!=r$level)  
+        aTable$addFormat(col=1, rowNo=i,format=Cell.BEGIN_GROUP)
+      what<-r$level
+    }
+  } ##### end of .fillThePTable
+  
+  if (is.null(variable) | is.null(moderator)) 
+    return()
+  
+  if (is.null(threeway)) {
+    results<-private$.simpleEffects(model,data,variable,moderator)
+    
+    ### ftests
+    key=paste(variable,1,sep="")
+    ftable<-simpleEffectsAnovas$get(key=key)
+    .fillTheFTable(results,ftable)      
+    ### parameters
+    ptable<-simpleEffectsTables$get(key=key)
+    .fillThePTable(results,ptable)
+  } else {
+    data$mod2<-data[,threeway]
+    if (is.factor(data$mod2)) {
+      levs<-levels(data$mod2)
+    } else 
+      levs<-c(mean(data$mod2)+sd(data$mod2),mean(data$mod2),mean(data$mod2)-sd(data$mod2))
+    for(i in seq_along(levs)) {
+      data[,threeway]<-data$mod2
+      if (is.factor(data$mod2))
+        contrasts(data[,threeway])<-contr.treatment(length(levs),base=i)
+      else
+        data[,threeway]<-data[,threeway]-levs[i]
       
-      
-      variable<-self$options$simpleVariable
-      moderator<-self$options$simpleModerator
-      threeway<-self$options$simple3way
-      data<-model$model
-      simpleEffectsTables<-self$results$simpleEffects
-      simpleEffectsAnovas<-self$results$simpleEffectsAnovas
-      
-      .fillTheFTable<-function(results,aTable) {
-        ftests<-results[[2]]
-        
-        ### ftests      
-        for (i in seq_len(dim(ftests)[1])) {
-          r<-ftests[i,]
-          row<-list(variable=r$variable,
-                    term=r$level,
-                    ss=r$`Sum of Sq`,
-                    df=r$Df,
-                    F=r$`F value`,
-                    p=r$`Pr(>F)`)
-          aTable$addRow(rowKey=i,row)
-        }
-        ### residuals for simple effects
-        df<-model$df.residual
-        rms<-sigma(model)^2
-        rss<-rms*df
-        
-        aTable$addRow(rowKey='',list(variable="Residuals",term="",df=df,ss=rss))
-        aTable$addFormat(col=1, rowKey='', format=Cell.BEGIN_END_GROUP)
-        
-      } #### end of .fillTheFTable
-      
-      .fillThePTable<-function(results,aTable) {
-        params<-results[[1]]
-        what<-params$level
-        for (i in seq_len(dim(params)[1])) {
-          r<-params[i,]
-          row<-list(variable=r$variable,
-                    term=r$level,
-                    estimate=r$Estimate,
-                    std=r$`Std. Error`,
-                    t=r$`t value`,
-                    p=r$`Pr(>|t|)`)
-          aTable$addRow(rowKey=i,row)
-          if (what!=r$level)  
-            aTable$addFormat(col=1, rowNo=i,format=Cell.BEGIN_GROUP)
-          what<-r$level
-        }
-      } ##### end of .fillThePTable
-      
-      if (is.null(variable) | is.null(moderator)) 
-         return()
+      results<-private$.simpleEffects(model,data,variable,moderator)
+      title<-paste("Simple effects of ",variable," computed for",threeway,"at",round(levs[i],digits = 2))
+      key=paste(variable,i,sep="")
+      ftable<-simpleEffectsAnovas$get(key=key)
+      ftable$setTitle(title)
+      .fillTheFTable(results,ftable)      
+      ### parameters
+      ptable<-simpleEffectsTables$get(key=key)
+      ptable$setTitle(title)
+      .fillThePTable(results,ptable)
+    } 
+  } # end of if (is.null(threeway)) 
+  
+},
 
-        if (is.null(threeway)) {
-        results<-private$.simpleEffects(model,data,variable,moderator)
-        ### ftests
-        title<-paste("of",variable)
-        ftable<-simpleEffectsAnovas$addItem(title)
-        .fillTheFTable(results,ftable)      
-        ### parameters
-        ptable<-simpleEffectsTables$addItem(title)
-        .fillThePTable(results,ptable)
-        } else {
-          data$mod2<-data[,threeway]
-          if (is.factor(data$mod2)) {
-            levs<-levels(data$mod2)
-          } else 
-               levs<-c(mean(data$mod2)+sd(data$mod2),mean(data$mod2),mean(data$mod2)-sd(data$mod2))
-          for(i in seq_along(levs)) {
-               data[,threeway]<-data$mod2
-               if (is.factor(data$mod2))
-                   contrasts(data[,threeway])<-contr.treatment(length(levs),base=i)
-               else
-                   data[,threeway]<-data[,threeway]-levs[i]
-               results<-private$.simpleEffects(model,data,variable,moderator)
-               atLevel<-levs[i]
-               if (is.numeric(atLevel)) atLevel<-round(levs[i],digits = 2)
-               title<-paste("computed for",threeway,"at",atLevel)
-               ftable<-simpleEffectsAnovas$addItem(title)
-               .fillTheFTable(results,ftable)      
-               ### parameters
-               ptable<-simpleEffectsTables$addItem(title)
-               .fillThePTable(results,ptable)
-             } 
-        } # end of if (is.null(threeway)) 
-
-    },
     .simpleEffects=function(model,data,variable,moderator){
-      
-      atSomeLevel<-function(moderator,level,data) {
-        if (is.factor(data[,moderator])) {
-          .levels<-levels(data[,moderator])
-          index<-which(.levels==level,arr.ind = T)
-          contrasts(data[,moderator])<-contr.treatment(length(.levels),base=index)
-        } else {
-          data[,moderator]<-data[,moderator]-level
-        }
-        form<-formula(model)
-        lm(form,data=data)
-      }
-      
-      extractEffect<-function(model,variable,moderator,level) {
-        ### get the parameters
-        if (is.null(model$xlevels[[variable]])) {
-          varname<-variable
-        }  else {
-          varname<-.getModelDummies(variable,model)
-        }
-        ss<-summary(model)
-        ss<-as.data.frame(ss$coefficients)
-        a<-as.logical(apply(sapply(varname, function(a) a==rownames(ss)),1,sum))
-        ss<-ss[a,] 
-        if (is.numeric(level)) level<-round(level,digits=2)
-        ss$level<-paste(moderator,level,sep=" at ")
-        ss$variable<-rownames(ss)
-        ss
-      }
-      extractF<-function(model,variable,moderator,level) {
-        ### get the ANOVA
-        ano<-drop1(model,.~.,test = "F")
-        ano<-ano[rownames(ano)==variable,c(1,2,5,6)]
-        if (is.numeric(level)) level<-round(level,digits=2)
-        ano$level<-paste(moderator,level,sep=" at ")
+  
+       atSomeLevel<-function(moderator,level,data) {
+          if (is.factor(data[,moderator])) {
+             .levels<-levels(data[,moderator])
+             index<-which(.levels==level,arr.ind = T)
+             contrasts(data[,moderator])<-contr.treatment(length(.levels),base=index)
+         } else {
+             data[,moderator]<-data[,moderator]-level
+         }
+         form<-formula(model)
+         private$.estimate(form,data)
+       }
+  
+       extractEffect<-function(model,variable,moderator,level) {
+         ### get the parameters
+          if (variable %in% self$options$factors) {
+              varname<-paste(variable,levels(data[,variable]),sep="")
+          }  else {
+              varname<-variable
+          }
+         ss<-private$.summary(model)
+         a<-as.logical(apply(sapply(varname, function(a) a==rownames(ss)),1,sum))
+         ss<-ss[a,] 
+         if (is.numeric(level)) level<-round(level,digits=2)
+         ss$level<-paste(moderator,level,sep=" at ")
+         ss$variable<-rownames(ss)
+         ss
+       }
+        
+       extractF<-function(model,variable,moderator,level) {
+          ### get the ANOVA
+         ano<-private$.anova(model)
+         ano<-ano[rownames(ano)==variable,]
+         if (is.numeric(level)) level<-round(level,digits=2)
+            ano$level<-paste(moderator,level,sep=" at ")
         ano$variable<-variable
         ano        
-      }
-      
-      mod<-data[,moderator]
-      if (is.factor(mod)) {
-        .levels<-levels(mod)
-      } else {
-        .levels<-c(mean(mod)+sd(mod),mean(mod),mean(mod)-sd(mod))
-      }
-      params<-data.frame()
-      ftests<-data.frame()
-      for (i in .levels) {
-        mod<-atSomeLevel(moderator,i,data)
-        params<-rbind(params,extractEffect(mod,variable,moderator,i))
-        ftests<-rbind(ftests,extractF(mod,variable,moderator,i))
-      }
-      list(params,ftests)
+       }
+  
+       mod<-data[,moderator]
+       if (is.factor(mod)) {
+           .levels<-levels(mod)
+       } else {
+           .levels<-c(mean(mod)+sd(mod),mean(mod),mean(mod)-sd(mod))
+       }
+       params<-data.frame()
+       ftests<-data.frame()
+       for (i in .levels) {
+           mod<-atSomeLevel(moderator,i,data)
+           params<-rbind(params,extractEffect(mod,variable,moderator,i))
+           ftests<-rbind(ftests,extractF(mod,variable,moderator,i))
+       }
+       list(params,ftests)
     },
     .modelTerms=function() {
       modelTerms <- self$options$modelTerms
@@ -633,7 +662,6 @@ gamljGLMClass <- R6::R6Class(
       
       modelTerms
     },
-
     .initDescPlots=function(data) {
       isAxis <- ! is.null(self$options$plotHAxis)
       isMulti <- ! is.null(self$options$plotSepPlots)
@@ -761,8 +789,6 @@ gamljGLMClass <- R6::R6Class(
       
       TRUE
     },
-
-
     .qqPlot=function(image, ggtheme, theme, ...) {
       library(ggplot2)
       dep <- self$options$dep
@@ -784,7 +810,7 @@ gamljGLMClass <- R6::R6Class(
       
       TRUE
     },
-.preparePlotData=function(model) {
+    .preparePlotData=function(model) {
   groupName <- self$options$plotHAxis
   linesName <- self$options$plotSepLines
   plotsName <- self$options$plotSepPlots
