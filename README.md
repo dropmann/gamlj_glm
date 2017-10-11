@@ -5,6 +5,8 @@ General Linear Model module of the GAMLj suite for Jamovi
 The module estimates a general linear model with categorial and/or continuous variables, with options to facilitate estimation of 
 interactions, simple slopes, simple effects, etc.
 
+You will first need to download [Jamovi](https://www.jamovi.org/download.html). To install this module download the file MetaModel.jmo and select it using the sideload feature in Jamovi.
+
 Detailed information at  https://mcfanda.github.io/gamlj_glm/
 
 ## Model
