@@ -583,6 +583,16 @@ gamljGLMClass <- R6::R6Class(
 },
 
     .simpleEffects=function(model,data,variable,moderator){
+      
+      # The simple effects function computes up to 3-ways simple effects
+      # for any (hopefully) linear model. Given the different estimation
+      # method of the linear models (lm(), glm(), lmer()), the module
+      # must have three functions: 
+      # private$.estimate() : should return the model estimate
+      # private$.summary() : should return the model summary table as a 
+      #                      dataset (usually the model$coefficients table)
+      # private$.anova() : should return the anova table or an equivalent
+      
   
        atSomeLevel<-function(moderator,level,data) {
           if (is.factor(data[,moderator])) {
