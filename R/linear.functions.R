@@ -163,13 +163,11 @@
 
 .getModelContrastsLabels<-function(contrasts,model) {
   contrasts<-as.data.frame(do.call(rbind,contrasts))
-  print(contrasts)
   data=local.getModelData(model)
   facts<-local.getModelFactors(model)  
   labels<-sapply(facts, function(varname) {
     if (varname %in% contrasts$var) {
       contrasttype<-contrasts[contrasts$var==varname,"type"]
-      print(paste(contrasts$var,contrasttype))
     } else {
       contrasttype<-"deviation"
     }
@@ -185,7 +183,6 @@
   for (i in seq_along(vars)) {
     if (vars[i] %in% names(labels)) {
       laylist<-sapply(laylist, function(a) {
-        print(paste(vars[i],"changed"))
         a[which(a == vars[i])]<-paste(unlist(labels[vars[i]]),collapse = "#")
         a
       })
@@ -207,5 +204,33 @@
   c("Intercept",unlist(final))
 }
 
+### this tells if a model term is dependent on the interaction
+.is.scaleDependent<-function(model,term) {
+  modelterms<-terms(model)
+  ff<-as.data.frame(attr(modelterms,"factors"))
+  termorder<-.term.order(term)
+  terms<-unlist(strsplit(term,":",fixed=T))
+  for (aterm in terms)
+    if(sum(ff[rownames(ff)==aterm,])>termorder)
+      return(TRUE)
+  FALSE
+}
 
+
+.term.develop<-function(term){
+  n<-.term.order(term)
+  (2^n)-1
+}
+
+.term.order<-function(term) {
+  length(unlist(strsplit(term,":",fixed=T)))
+}
+
+.interaction.term<-function(model,aList) {
+  ff<-colnames(attr(terms(model),"factors"))
+  ff<-strsplit(ff,":")
+  for(f in ff)
+    if(all(f %in% aList) & all(aList %in% f) )
+      return(paste(f,collapse = ":"))
+}
 

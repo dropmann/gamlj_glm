@@ -401,20 +401,16 @@ gamljGLMClass <- R6::R6Class(
         
         term <- jmvcore::composeTerm(ph)
         termB64 <- jmvcore::composeTerm(toB64(ph))
-        
         formula <- as.formula(paste('~', term))
         
         suppressWarnings({
-          
           # table$setStatus('running')
-          
           referenceGrid <- lsmeans::lsmeans(private$.model, formula)
           none <- summary(pairs(referenceGrid, adjust='none'))
           tukey <- summary(pairs(referenceGrid, adjust='tukey'))
           scheffe <- summary(pairs(referenceGrid, adjust='scheffe'))
           bonferroni <- summary(pairs(referenceGrid, adjust='bonferroni'))
           holm <- summary(pairs(referenceGrid, adjust='holm'))
-          
         }) # suppressWarnings
         
         resultRows <- lapply(strsplit(as.character(none$contrast), ' - '), function(x) strsplit(x, ','))
@@ -452,7 +448,10 @@ gamljGLMClass <- R6::R6Class(
           table$setRow(rowNo=i, values=row)
           private$.checkpoint()
         }
-        
+        if (.is.scaleDependent(private$.model,ph))
+          table$setNote("covs","Post-hocs means are estimated keeping interacting variables equal to zero")
+        else if (.term.develop(ph)<length(private$.modelTerms()))
+             table$setNote("covs","Post-hocs means are estimated keeping constant the other independent variables")
         table$setStatus('complete')
       }
     },
@@ -554,6 +553,13 @@ gamljGLMClass <- R6::R6Class(
     ### parameters
     ptable<-simpleEffectsTables$get(key=key)
     .fillThePTable(results,ptable)
+    #### ad some warning ####
+    term<-.interaction.term(private$.model,c(variable,moderator))
+    if (.is.scaleDependent(private$.model,term))
+       ptable$setNote("inter","Simple effects are estimated setting higher order moderator(s) to zero")
+    else if (.term.develop(term)<length(private$.modelTerms()))
+       ptable$setNote("covs","Simple effects are estimated keeping constant the other independent variables")
+    ### end of warnings ###
   } else {
     data$mod2<-data[,threeway]
     if (is.factor(data$mod2)) {

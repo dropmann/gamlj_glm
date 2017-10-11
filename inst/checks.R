@@ -11,7 +11,26 @@ contrasts(dat$wfac3)<-.createContrasts(levels(dat$wfac3),"deviation")
 #contrasts(dat$wfac3)<-contr.sum(3)
 
 
-model<-lm(y~wfac3*wfac*x,data=dat)
+model<-lm(y~wfac3*wfac+x,data=dat)
+max(attr(terms(model),"order"))
+term="wfac3"
+
+is.scaleDependent<-function(model,term) {
+    modelterms<-terms(model)
+    ff<-as.data.frame(attr(modelterms,"factors"))
+    termorder<-sum(ff[,term])
+    terms<-unlist(strsplit(term,":",fixed=T))
+    for (aterm in terms)
+       if(sum(ff[rownames(ff)==term,])>termorder)
+         return(TRUE)
+    FALSE
+}
+model
+
+.term.develop("wfac3:wfac")
+.term.order("wfac3:wfac")
+
+is.scaleDependent(model,"wfac3")
 summ<-summary(model)
 rows<-rownames(summ$coefficients)
 rows<-rows[rows!="(Intercept)"]
@@ -64,5 +83,4 @@ c(" ",unlist(final))
 
 q<-.getContrastsList(model)
 q<-unlist(q)
-
-
+isError

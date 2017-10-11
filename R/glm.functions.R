@@ -12,4 +12,3 @@ local.getModelDummies<-function(variable,model) {
 local.getModelFactors<-function(model) names(model$contrasts)
 
 
-
