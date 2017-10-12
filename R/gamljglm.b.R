@@ -210,7 +210,6 @@ gamljGLMClass <- R6::R6Class(
         
         formula <- jmvcore::constructFormula(dep, modelTerms)
         formula <- stats::as.formula(formula)
-        
         model <- stats::lm(formula, data)
         private$.model <- model
         self$results$.setModel(model)
@@ -244,7 +243,8 @@ gamljGLMClass <- R6::R6Class(
         rowCount <- dim(ss)[1]
         rowNames <- dimnames(ss)[[1]]
         errdf<-model$df.residual
-        errMS<-summary(model)$sigma^2
+        sumr<-stats::summary(model)
+        errMS<-sumr$sigma^2
         errSS<-errMS*errdf
         totalSS<-sum(ss$ss)+errSS
         ss$ms<-ss$ss/ss$df
