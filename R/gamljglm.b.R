@@ -1,6 +1,7 @@
 library(ggplot2)
 source("R/glm.functions.R")
 source("R/linear.functions.R")
+source("R/constants.R")
 
 #' @import ggplot2
 gamljGLMClass <- R6::R6Class(
@@ -449,9 +450,9 @@ gamljGLMClass <- R6::R6Class(
           private$.checkpoint()
         }
         if (.is.scaleDependent(private$.model,ph))
-          table$setNote("covs","Post-hocs means are estimated keeping interacting variables equal to zero")
+          table$setNote("covs",WARNS[["ph.interactions"]])
         else if (.term.develop(ph)<length(private$.modelTerms()))
-             table$setNote("covs","Post-hocs means are estimated keeping constant the other independent variables")
+          table$setNote("covs",WARNS[["ph.covariates"]])
         table$setStatus('complete')
       }
     },
@@ -556,9 +557,9 @@ gamljGLMClass <- R6::R6Class(
     #### add some warning ####
     term<-.interaction.term(private$.model,c(variable,moderator))
     if (.is.scaleDependent(private$.model,term))
-       ptable$setNote("inter","Simple effects are estimated setting higher order moderator(s) to zero")
+      ptable$setNote("inter",WARNS[["se.interactions"]])
     else if (.term.develop(term)<length(private$.modelTerms()))
-       ptable$setNote("covs","Simple effects are estimated keeping constant the other independent variables")
+      ptable$setNote("covs",WARNS[["se.interactions"]])
     ### end of warnings ###
   } else {
     data$mod2<-data[,threeway]
@@ -587,7 +588,6 @@ gamljGLMClass <- R6::R6Class(
   } # end of if (is.null(threeway)) 
   
 },
-
     .simpleEffects=function(model,data,variable,moderator){
       
       # The simple effects function computes up to 3-ways simple effects
