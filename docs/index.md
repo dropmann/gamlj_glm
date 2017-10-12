@@ -93,4 +93,11 @@ You can clone this repository and compile the module within R with
 
 ``` jmvtools::install() ```
 
+or, without cloning anything, just run this within R
+
+
+```
+library("devtools")
+install_github("mcfanda/gamlj_glm")
+```
 
