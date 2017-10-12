@@ -27,8 +27,6 @@ is.scaleDependent<-function(model,term) {
 }
 model
 
-.term.develop("wfac3:wfac")
-.term.order("wfac3:wfac")
 
 is.scaleDependent(model,"wfac3")
 summ<-summary(model)

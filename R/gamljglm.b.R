@@ -553,7 +553,7 @@ gamljGLMClass <- R6::R6Class(
     ### parameters
     ptable<-simpleEffectsTables$get(key=key)
     .fillThePTable(results,ptable)
-    #### ad some warning ####
+    #### add some warning ####
     term<-.interaction.term(private$.model,c(variable,moderator))
     if (.is.scaleDependent(private$.model,term))
        ptable$setNote("inter","Simple effects are estimated setting higher order moderator(s) to zero")
