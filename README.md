@@ -1,4 +1,4 @@
-# GAMLj: The GLM module
+# GAMLj: The GLM module for Jamovi
 
 General Linear Model module of the GAMLj suite for Jamovi
 
