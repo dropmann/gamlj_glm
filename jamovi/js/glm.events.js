@@ -17,6 +17,8 @@ const events = {
     onChange_modelTerms: function(ui) {
         filterModelTerms(ui, this);
         updatePostHocSupplier(ui, this);
+        updateSimpleSupplier(ui, this);
+
     },
 
     onChange_plotsSupplier: function(ui) {
@@ -45,11 +47,9 @@ var calcModelTerms = function(ui, context) {
     var covariatesList = context.cloneArray(ui.covs.value(), []);
 
     var combinedList = variableList.concat(covariatesList);
-
     ui.modelSupplier.setValue(context.valuesToItems(combinedList, FormatDef.variable));
     ui.plotsSupplier.setValue(context.valuesToItems(combinedList, FormatDef.variable));
-    ui.simpleSupplier.setValue(context.valuesToItems(combinedList, FormatDef.variable));
- 
+
     var diff = context.findChanges("variableList", variableList, true, FormatDef.variable);
     var diff2 = context.findChanges("covariatesList", covariatesList, true, FormatDef.variable);
     var combinedDiff = context.findChanges("combinedList", combinedList, true, FormatDef.variable);
@@ -112,6 +112,20 @@ var calcModelTerms = function(ui, context) {
     updateScaling(ui, covariatesList, context);
 };
 
+var updateSimpleSupplier = function(ui, context) {
+    var termsList = context.cloneArray(ui.modelTerms.value(), []);
+    var varList=[];
+    for (var j = 0; j < termsList.length; j++) {
+        var newTerm=context.clone(termsList[j]);
+        if (newTerm.length==1) {
+              varList.push(newTerm);
+        }
+    }
+    varList=context.valuesToItems(varList, FormatDef.variable);
+    console.log(varList);
+    ui.simpleSupplier.setValue(varList);
+};
+
 var updatePostHocSupplier = function(ui, context) {
     var termsList = context.cloneArray(ui.modelTerms.value(), []);
     var covariatesList = context.cloneArray(ui.covs.value(), []);
@@ -119,7 +133,7 @@ var updatePostHocSupplier = function(ui, context) {
     for (var j = 0; j < termsList.length; j++) {
         var term = termsList[j];
         if (containsCovariate(term, covariatesList) === false)
-            list.push(term)
+            list.push(term);
     }
     ui.postHocSupplier.setValue(context.valuesToItems(list, FormatDef.term));
 };

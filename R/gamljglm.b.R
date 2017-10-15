@@ -243,7 +243,7 @@ gamljGLMClass <- R6::R6Class(
         rowCount <- dim(ss)[1]
         rowNames <- dimnames(ss)[[1]]
         errdf<-model$df.residual
-        sumr<-stats::summary(model)
+        sumr<-summary(model)
         errMS<-sumr$sigma^2
         errSS<-errMS*errdf
         totalSS<-sum(ss$ss)+errSS
